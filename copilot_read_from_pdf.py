@@ -1,0 +1,2 @@
+# despite having the flag to allow for use of public code copilot is blocking the request because it is using public code
+# Simple Prompt: provide me python code to use OpenAI API to perform retrieval augmented generation on a pdf
