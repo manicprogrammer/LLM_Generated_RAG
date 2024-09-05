@@ -1,13 +1,10 @@
 # Simple prompt: provide code for using retrieval augmented generation on a single PDF using the OpenAI API
 
-import os
 import PyPDF2
 import openai
-from dotenv import load_dotenv
 
 # Load your OpenAI API key
-load_dotenv()
-openai_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = 'your-api-key'
 
 # Function to read PDF content
 def read_pdf(file_path):
@@ -20,9 +17,8 @@ def read_pdf(file_path):
 
 # Function to generate a response using OpenAI API
 def generate_response(prompt):
-    client = openai.OpenAI(api_key=openai_key)
-    response = client.chat.completions.create(
-        model="gpt-4o",
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
         messages=[{"role": "user", "content": prompt}]
     )
     return response['choices'][0]['message']['content']
@@ -35,7 +31,7 @@ def rag_on_pdf(pdf_path, query):
     return answer
 
 # Example usage
-pdf_path = 'data\Self-Sovereign Identity A Systematic Review Mapping and Taxonomy.pdf'
+pdf_path = 'path/to/your/document.pdf'
 query = 'What is the main topic of the document?'
 response = rag_on_pdf(pdf_path, query)
 print(response)
