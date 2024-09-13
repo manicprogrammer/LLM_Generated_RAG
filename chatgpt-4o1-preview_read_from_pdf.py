@@ -3,98 +3,97 @@
 # You are a computer programmer that specializes in writing functioning AI software in python. 
 # You use simple code to do powerful things.  
 # Write me some python that does a single document RAG reading from a PDF for OpenAI API.
+#
+# there was the following note as part of the output:
+# Note: This script is designed for simplicity and may not handle very large documents efficiently. 
+# For more advanced use cases, consider integrating a vector database 
+# or optimizing the text splitting and embedding process.
 
+import os
 import openai
 import PyPDF2
 import numpy as np
 
-# Set your OpenAI API key
-openai.api_key = 'YOUR_OPENAI_API_KEY'  # Replace with your OpenAI API key
+# Install required packages if not already installed:
+# pip install openai PyPDF2 numpy tiktoken
 
-def extract_text_from_pdf(pdf_path):
-    """Extract text from a PDF file."""
-    with open(pdf_path, 'rb') as f:
-        reader = PyPDF2.PdfReader(f)
-        text = ''
-        for page in reader.pages:
-            text += page.extract_text()
+# Set your OpenAI API key
+openai.api_key = 'YOUR_OPENAI_API_KEY'
+
+def read_pdf(file_path):
+    """Read and extract text from a PDF file."""
+    pdf_reader = PyPDF2.PdfReader(open(file_path, 'rb'))
+    text = ''
+    for page_num in range(len(pdf_reader.pages)):
+        page = pdf_reader.pages[page_num]
+        text += page.extract_text()
     return text
 
-def split_text(text, max_chunk_size=1000):
-    """Split text into chunks of a specified maximum size."""
-    paragraphs = text.split('\n\n')
+def split_text(text, max_tokens=500):
+    """Split text into chunks of a specified token length."""
+    import tiktoken
+    encoding = tiktoken.get_encoding("cl100k_base")
+    tokens = encoding.encode(text)
     chunks = []
-    current_chunk = ''
-    for para in paragraphs:
-        if len(current_chunk) + len(para) > max_chunk_size:
-            chunks.append(current_chunk)
-            current_chunk = para
-        else:
-            current_chunk += '\n\n' + para
-    if current_chunk:
-        chunks.append(current_chunk)
+    for i in range(0, len(tokens), max_tokens):
+        chunk = encoding.decode(tokens[i:i+max_tokens])
+        chunks.append(chunk)
     return chunks
 
-def get_embedding(text, model='text-embedding-ada-002'):
-    """Generate an embedding for a given text using OpenAI's API."""
+def get_embedding(text):
+    """Get the embedding of a text chunk using OpenAI's API."""
     response = openai.Embedding.create(
         input=text,
-        model=model
+        model='text-embedding-ada-002'
     )
     embedding = response['data'][0]['embedding']
     return embedding
 
-def create_embedding_index(chunks):
-    """Create an index of embeddings for text chunks."""
-    embeddings = []
-    for chunk in chunks:
-        embedding = get_embedding(chunk)
-        embeddings.append({'chunk': chunk, 'embedding': embedding})
-    return embeddings
-
-def cosine_similarity(a, b):
-    """Calculate the cosine similarity between two vectors."""
+def compute_similarity(a, b):
+    """Compute cosine similarity between two embeddings."""
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-def query_pdf(query, embeddings_index):
-    """Find the most relevant text chunk for a given query."""
-    query_embedding = get_embedding(query)
-    similarities = []
-    for item in embeddings_index:
-        similarity = cosine_similarity(query_embedding, item['embedding'])
-        similarities.append({'chunk': item['chunk'], 'similarity': similarity})
-    similarities = sorted(similarities, key=lambda x: x['similarity'], reverse=True)
-    most_similar_chunk = similarities[0]['chunk']
-    return most_similar_chunk
+def find_most_similar_chunks(question_embedding, chunk_embeddings, top_k=3):
+    """Find the most similar text chunks to the user's question."""
+    similarities = [compute_similarity(question_embedding, emb) for emb in chunk_embeddings]
+    top_indices = np.argsort(similarities)[-top_k:][::-1]
+    return top_indices
 
-def generate_answer(query, context, model='gpt-3.5-turbo'):
-    """Generate an answer using the context and query."""
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant that uses the provided context to answer the question."},
-        {"role": "user", "content": f"Context: {context}\n\nQuestion: {query}"}
-    ]
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=messages,
-        temperature=0.7,
-        max_tokens=200
+def answer_question(question, chunks, chunk_embeddings):
+    """Generate an answer to the user's question using relevant text chunks."""
+    # Get embedding for the question
+    question_embedding = get_embedding(question)
+    # Find most similar chunks
+    top_indices = find_most_similar_chunks(question_embedding, chunk_embeddings)
+    # Retrieve relevant chunks
+    relevant_chunks = [chunks[i] for i in top_indices]
+    # Construct the prompt
+    context = "\n\n".join(relevant_chunks)
+    prompt = f"Answer the question based on the context below.\n\nContext:\n{context}\n\nQuestion: {question}\nAnswer:"
+    # Get the answer from OpenAI
+    response = openai.Completion.create(
+        engine='text-davinci-003',
+        prompt=prompt,
+        max_tokens=200,
+        temperature=0
     )
-    answer = response['choices'][0]['message']['content']
+    answer = response['choices'][0]['text'].strip()
     return answer
 
 def main():
-    pdf_path = 'document.pdf'  # Replace with your PDF file path
-    text = extract_text_from_pdf(pdf_path)
+    # Path to your PDF file
+    file_path = 'document.pdf'  # Replace with your PDF file path
+    # Read the PDF
+    text = read_pdf(file_path)
+    # Split the text into chunks
     chunks = split_text(text)
-    embeddings_index = create_embedding_index(chunks)
-    
-    while True:
-        query = input("Enter your question (or 'exit' to quit): ")
-        if query.lower() == 'exit':
-            break
-        context = query_pdf(query, embeddings_index)
-        answer = generate_answer(query, context)
-        print("Answer:", answer)
+    # Get embeddings for the chunks
+    chunk_embeddings = [get_embedding(chunk) for chunk in chunks]
+    # Get user question
+    question = input("Enter your question: ")
+    # Get the answer
+    answer = answer_question(question, chunks, chunk_embeddings)
+    print("\nAnswer:", answer)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
