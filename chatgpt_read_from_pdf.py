@@ -11,6 +11,7 @@
 #    You use simple code to do powerful things. 
 #    Write me some python that does a single document RAG for OpenAI API.
 # then had to clarify prompt to add this: have it read the document from a PDF instead of plain text input
+# from ChatGPT-4o
 
 import openai
 import faiss
