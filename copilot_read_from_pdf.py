@@ -1,11 +1,26 @@
 # Simple Prompt: provide me python code to use OpenAI API to perform retrieval augmented generation on a pdf
-# has not yet been edited to be executable with the desired results
+##
+# I tried to start editing this but it was so far off base in the generated code that I just stopped. It's doing some weird stuff like
+# chunking the document then taking each chunk of the doc and passing it to the LLM with the prompt to extract up to 150 tokens from that chunk
+# no embeddings or anything. A very weird proposed solution and entirely unworkable.
+#
+# It's funny - CoPilot is in use as I type these comments and suggesting comments to add. One suggestion was:
+# "I think it would be better to just read the PDF and pass the whole thing to the LLM with the prompt to answer the question."
+# How insightful of it! 
+# Why didn't it just do that in the first place? It would have provided a simple solution to the simple prompt. It's exactly what Cursor did
+##
 
 # Step 1: Install Required Libraries
 # pip install pymupdf openai
 
 import fitz  # PyMuPDF
 import openai
+import os
+from dotenv import load_dotenv
+
+# Load your OpenAI API key
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 # Step 2: Extract Text from PDF
@@ -54,8 +69,8 @@ def main(pdf_path, query, api_key):
 
 # Example Usage
 if __name__ == "__main__":
-    pdf_path = "example.pdf"
+    pdf_path = 'data\Self-Sovereign Identity A Systematic Review Mapping and Taxonomy.pdf'
     query = "What is the main topic of the document?"
-    api_key = "your_openai_api_key"
+    api_key = openai.api_key  # Assuming the API key is already loaded
     response = main(pdf_path, query, api_key)
     print(response)
