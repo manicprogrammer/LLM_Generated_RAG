@@ -12,6 +12,7 @@
 #    Write me some python that does a single document RAG for OpenAI API.
 # then had to clarify prompt to add this: have it read the document from a PDF instead of plain text input
 # from ChatGPT-4o
+# has not yet been edited to be executable with the desired results
 
 import openai
 import faiss

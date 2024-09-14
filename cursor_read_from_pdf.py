@@ -1,4 +1,7 @@
 # Simple prompt: provide code for using retrieval augmented generation on a single PDF using the OpenAI API
+# This version of the script has been edited from what was generated to be able to run.
+
+
 import os
 import PyPDF2
 import openai

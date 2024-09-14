@@ -8,6 +8,8 @@
 # Note: This script is designed for simplicity and may not handle very large documents efficiently. 
 # For more advanced use cases, consider integrating a vector database 
 # or optimizing the text splitting and embedding process.
+#
+# has not yet been edited to be executable with the desired results
 
 import os
 import openai

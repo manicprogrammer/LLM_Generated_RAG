@@ -1,4 +1,5 @@
 # Simple Prompt: provide me python code to use OpenAI API to perform retrieval augmented generation on a pdf
+# has not yet been edited to be executable with the desired results
 
 # Step 1: Install Required Libraries
 # pip install pymupdf openai
