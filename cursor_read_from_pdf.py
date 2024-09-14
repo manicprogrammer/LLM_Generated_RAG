@@ -1,6 +1,17 @@
 # Simple prompt: provide code for using retrieval augmented generation on a single PDF using the OpenAI API
 # This version of the script has been edited from what was generated to be able to run.
-
+# edited to run with the OpenAI Python V1.43.0
+##
+# response:
+#    The main topic of the document is Self-Sovereign Identity (SSI), which is an identity model that emphasizes 
+#    user control over personal data. The document presents a systematic review of the literature on SSI,
+#    mapping its theoretical and practical advancements, and proposing a taxonomy to categorize the research.
+#    It discusses concepts, challenges, and solutions related to SSI while addressing issues such as privacy, 
+#    identity management, and the evolution of identity models. 
+#    The study aims to provide an organized understanding of SSI literature and to highlight areas for future research.
+##
+# Due to how Cursor decided to create the solution the response is the best response of the set of responses I could get.
+# This makes sense in that it is using the full document for context rather than an identified chunk. 
 
 import os
 import PyPDF2
